@@ -6,11 +6,19 @@ UniGuide is a premium, modern college campus assistant chatbot built using a **P
 
 ## 🌟 Key Features
 
-* **Dual response processing**: Integrates Google Gemini AI for smart, freeform conversation, and a robust fallback rule engine when running offline.
-* **Interactive Conversational UI**: Responsive design featuring glassmorphism, glowing accents, sound effects, and dark/light themes.
+* **Dual Response Processing**: Integrates Google Gemini AI for smart, freeform conversation, and a robust stateful offline rule engine when running without an API key.
+* **Assistant Modes (Bot Personalities)**: A dropdown selector dynamically changes the bot's communication tone:
+  - **Academic Advisor**: Professional, serious, focus on admissions and exams.
+  - **Campus Tour Guide**: Casual, energetic, emoji-rich, focus on campus hotspots.
+  - **IT Service Desk**: Direct, troubleshooting-focused step-by-step assistant.
+* **Interactive Conversational UI**: Fully responsive frontend featuring premium glassmorphism styling, glowing hover effects, sound cues, and dark/light modes.
+* **Interactive Student Tools**: Sidebar widgets calculating details on-the-fly:
+  - **GPA Calculator**: Add courses, select grades, and input credit values to get real-time GPA estimates.
+  - **Tuition Cost Estimator**: Check/uncheck options for state residency, campus housing, and meal plans to calculate customized cost profiles.
 * **Admissions Portal**: Highlights application timelines and steps, and provides direct simulation links.
-* **Interactive Navigation**: Renders a top-down simulated campus map with locator pins.
-* **Stateful Support Desk**: Allows users to raise a student support ticket, collecting emails, descriptions, and logging a ticket ID.
+* **Interactive Campus Mapping**: Renders an inline SVG campus layout with glowing buildings. Clicking on any building automatically queries the chatbot for details.
+* **Stateful Support Desk**: Initiates a session state machine to log support tickets directly to a local SQLite database (`tickets.db`), outputting confirmation codes (`TCK-XXXXXX`).
+* **Message Utilities**: Hover overlays containing clipboard copying and Web Speech Synthesis (Text-to-Speech) readout features.
 * **Ready-Made Reports**: Compiled Microsoft Word (`.docx`) and PDF (`.pdf`) submission documents.
 
 ---
@@ -18,8 +26,8 @@ UniGuide is a premium, modern college campus assistant chatbot built using a **P
 ## 📂 Project Structure
 
 ```text
-UniGuide-Chatbot/
-├── app.py                      # Flask Server and NLP logic
+Chatbot/
+├── app.py                      # Flask Server and chatbot logic
 ├── requirements.txt            # Python dependencies
 ├── generate_docs.py            # Report generator script
 ├── templates/
@@ -32,8 +40,9 @@ UniGuide-Chatbot/
 │   ├── admission_faq.png
 │   ├── navigation_flow.png
 │   └── fallback_handling.png
-├── UniGuide_Assignment_Submission.docx   # Word Report
-└── UniGuide_Assignment_Submission.pdf    # PDF Report
+├── UniGuide_Assignment_Submission.docx   # Compiled Word Report
+├── UniGuide_Assignment_Submission.pdf    # Compiled PDF Report
+└── tickets.db                  # Local SQLite Database (auto-generated)
 ```
 
 ---
