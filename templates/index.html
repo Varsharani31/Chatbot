@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniGuide - Flask AI Campus Assistant Chatbot</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Flask Static Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>UniGuide</h1>
+                    <span>Flask AI Bot</span>
+                </div>
+            </div>
+
+            <!-- Bot Personality Selector -->
+            <div class="personality-selector-card">
+                <label for="personality-select"><i class="fa-solid fa-robot"></i> Assistant Mode:</label>
+                <select id="personality-select" class="theme-select">
+                    <option value="advisor">🎓 Academic Advisor</option>
+                    <option value="guide">🎒 Campus Tour Guide</option>
+                    <option value="support">🛠️ IT Service Desk</option>
+                </select>
+            </div>
+
+            <!-- Stats/Info Card -->
+            <div class="stats-card">
+                <div class="stat-item">
+                    <span class="stat-label"><i class="fa-regular fa-clock"></i> Campus Time</span>
+                    <span class="stat-value" id="campus-time">12:00 PM</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label"><i class="fa-solid fa-calendar-day"></i> Term Events</span>
+                    <span class="stat-value">4 Active Today</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label"><i class="fa-solid fa-circle-nodes"></i> Bot Status</span>
+                    <span class="stat-value status-online"><span class="dot"></span> Online</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <span class="menu-title">Common Topics</span>
+                <button class="menu-btn" data-query="Admissions Requirements"><i class="fa-solid fa-user-plus"></i> Admissions 2026</button>
+                <button class="menu-btn" data-query="Fee Structure"><i class="fa-solid fa-credit-card"></i> Fees & Payments</button>
+                <button class="menu-btn" data-query="Campus Map"><i class="fa-solid fa-map-location-dot"></i> Interactive Map</button>
+                <button class="menu-btn" data-query="Exam Dates"><i class="fa-solid fa-calendar-check"></i> Exam Schedule</button>
+                <button class="menu-btn" data-query="Support Ticket"><i class="fa-solid fa-headset"></i> Raise Support Ticket</button>
+            </nav>
+
+            <!-- Interactive Student Tools Accordion -->
+            <div class="student-tools-panel">
+                <span class="menu-title">Interactive Tools</span>
+                
+                <!-- GPA Calculator Accordion Item -->
+                <div class="tool-accordion-item">
+                    <button class="accordion-header" id="gpa-accordion-header">
+                        <span><i class="fa-solid fa-calculator"></i> GPA Calculator</span>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </button>
+                    <div id="gpa-calc-content" class="accordion-content">
+                        <div class="gpa-form">
+                            <div class="gpa-row-header">
+                                <span>Grade</span>
+                                <span>Credits</span>
+                            </div>
+                            <div id="gpa-rows-container">
+                                <div class="gpa-row">
+                                    <select class="gpa-grade">
+                                        <option value="4.0">A (4.0)</option>
+                                        <option value="3.0">B (3.0)</option>
+                                        <option value="2.0">C (2.0)</option>
+                                        <option value="1.0">D (1.0)</option>
+                                        <option value="0.0">F (0.0)</option>
+                                    </select>
+                                    <input type="number" class="gpa-credits" value="3" min="1" max="6">
+                                </div>
+                                <div class="gpa-row">
+                                    <select class="gpa-grade">
+                                        <option value="4.0">A (4.0)</option>
+                                        <option value="3.0" selected>B (3.0)</option>
+                                        <option value="2.0">C (2.0)</option>
+                                        <option value="1.0">D (1.0)</option>
+                                        <option value="0.0">F (0.0)</option>
+                                    </select>
+                                    <input type="number" class="gpa-credits" value="3" min="1" max="6">
+                                </div>
+                            </div>
+                            <button type="button" class="add-gpa-row-btn" id="add-gpa-row-btn"><i class="fa-solid fa-plus"></i> Add Course</button>
+                            <div class="gpa-result">
+                                <span>Estimated GPA:</span>
+                                <strong id="gpa-display">3.50</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tuition Cost Estimator Accordion Item -->
+                <div class="tool-accordion-item">
+                    <button class="accordion-header" id="tuition-accordion-header">
+                        <span><i class="fa-solid fa-dollar-sign"></i> Tuition Estimator</span>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </button>
+                    <div id="tuition-calc-content" class="accordion-content">
+                        <div class="tuition-form">
+                            <label class="calc-checkbox-label">
+                                <input type="checkbox" id="tuition-out-of-state">
+                                <span>Out-of-State Student</span>
+                            </label>
+                            <label class="calc-checkbox-label">
+                                <input type="checkbox" id="tuition-housing" checked>
+                                <span>Campus Housing</span>
+                            </label>
+                            <label class="calc-checkbox-label">
+                                <input type="checkbox" id="tuition-meal-plan">
+                                <span>Full Meal Plan</span>
+                            </label>
+                            <div class="tuition-result">
+                                <span>Est. Cost / Year:</span>
+                                <strong id="tuition-display">$16,300</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <p>Flask Server v3.0 • Active Session</p>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-wrapper">
+            <!-- Header bar -->
+            <header class="chat-header">
+                <div class="bot-info">
+                    <div class="avatar-container">
+                        <img src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=UniGuide" alt="Bot Avatar" class="bot-avatar">
+                        <span class="indicator-active"></span>
+                    </div>
+                    <div class="bot-details">
+                        <h2>UniGuide AI</h2>
+                        <p class="typing-status" id="bot-typing">Ready to assist you</p>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button class="header-btn" id="volume-toggle" title="Mute/Unmute Sounds">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                    <button class="header-btn" id="theme-toggle" title="Toggle Light/Dark Mode">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <button class="header-btn" id="clear-chat" title="Clear Chat History">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Messages Window -->
+            <div class="messages-container" id="chat-messages">
+                <!-- Welcome Message (Rendered on load) -->
+            </div>
+
+            <!-- Quick Reply Suggestions Bar -->
+            <div class="quick-replies" id="quick-replies-bar">
+                <!-- Dynamically populated replies -->
+            </div>
+
+            <!-- Chat Input controls -->
+            <footer class="chat-input-panel">
+                <form id="chat-form" class="input-form">
+                    <button type="button" class="input-action-btn" title="Quick Navigation" id="nav-shortcut-btn">
+                        <i class="fa-solid fa-compass"></i>
+                    </button>
+                    <input type="text" id="user-input" placeholder="Type a message or ask a question (e.g., 'When are exams?', 'Fees')..." autocomplete="off" required>
+                    <button type="submit" class="send-btn" id="send-button">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Web App Audio Effects (Simulated Sounds) -->
+    <audio id="sound-msg-receive" src="https://assets.mixkit.co/active_storage/sfx/2357/2357-84.wav" preload="auto"></audio>
+    <audio id="sound-msg-send" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-84.wav" preload="auto"></audio>
+
+    <!-- Flask Static App Script -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
