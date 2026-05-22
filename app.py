@@ -191,6 +191,37 @@ DEFAULT_REPLIES = ["Admissions", "Tuition Fees", "Campus Map", "Exam Schedule", 
 # --------------------------------------------------------------------------
 def get_offline_response(user_msg, session_id, personality="advisor"):
     clean_msg = user_msg.lower().strip()
+    
+    # Mode switch / greeting trigger
+    if clean_msg in ["system_switch_mode", "greet_mode", "hi", "hello", "hey", "greetings"]:
+        if personality == "guide":
+            return {
+                "response": """
+                    <h3>🎒 Hey there! I'm your Campus Tour Guide! 🌟</h3>
+                    <p>Woohoo! Welcome to our beautiful campus! I'm super excited to show you around. 🗺️</p>
+                    <p>We can check out the awesome library, diner hotspots, dorms, or calculate your tuition and GPA in the sidebar tools! What are we exploring first? 🚀</p>
+                """,
+                "replies": DEFAULT_REPLIES
+            }
+        elif personality == "support":
+            return {
+                "response": """
+                    <h3>🛠️ IT Service Desk L1 Agent</h3>
+                    <p>System Online. I am acting as your support desk assistant. I can assist with ticket status checks, raising database tickets, or general IT inquiries.</p>
+                    <p>Please enter your service request description or type <code>lookup TCK-XXXXXX</code> to check ticket details.</p>
+                """,
+                "replies": ["Raise Support Ticket", "Campus Map", "Exam Schedule"]
+            }
+        else: # advisor
+            return {
+                "response": """
+                    <h3>🎓 Academic Advisor Portal</h3>
+                    <p>Welcome. I am acting as your Academic Advisor. I am here to provide structured details on admissions guidelines, tuition structures, policy reviews, and exam schedules.</p>
+                    <p>How may I assist you with your academic planning today?</p>
+                """,
+                "replies": DEFAULT_REPLIES
+            }
+
     state = session_states.get(session_id, {"step": None, "email": "", "issue": ""})
 
     # SQLite Ticket Lookup Logic
@@ -407,24 +438,61 @@ def get_offline_response(user_msg, session_id, personality="advisor"):
             "replies": DEFAULT_REPLIES
         }
 
-    # Fallback response
-    return {
-        "response": f"""
-            <h3>🔍 Unrecognized Query</h3>
-            <p>I couldn't quite find exact answers for "<em>{user_msg}</em>" in our current database.</p>
-            <p>Could you clarify or select from one of our popular topics below?</p>
-            <div class="chat-card">
-                <span class="chat-card-title"><i class="fa-solid fa-lightbulb"></i> Recommendations</span>
-                <span class="chat-card-content">
-                    • Use simpler terms (e.g. <em>"fees"</em> instead of <em>"how much is the tuition fee"</em>)<br>
-                    • Inquire about <strong>campus map</strong> or <strong>exams schedule</strong><br>
-                    • Type <code>lookup TCK-XXXXXX</code> to check a support ticket<br>
-                    • Click one of the quick replies below.
-                </span>
-            </div>
-        """,
-        "replies": DEFAULT_REPLIES
-    }
+    # Fallback response based on personality
+    if personality == "guide":
+        return {
+            "response": f"""
+                <h3>🔍 Oops! Not sure where that is on the map... 🗺️</h3>
+                <p>I couldn't quite catch what you meant by "<em>{user_msg}</em>". Eek!</p>
+                <p>No worries, let's explore something fun! You can:</p>
+                <div class="chat-card">
+                    <span class="chat-card-title"><i class="fa-solid fa-lightbulb"></i> Fun Hotspots</span>
+                    <span class="chat-card-content">
+                        • Ask about the <strong>library</strong> or the <strong>gym</strong>!<br>
+                        • Ask for the <strong>campus map</strong> to see where buildings are<br>
+                        • Use the sidebar tools to estimate your annual college cost<br>
+                        • Click one of the quick replies below!
+                    </span>
+                </div>
+            """,
+            "replies": DEFAULT_REPLIES
+        }
+    elif personality == "support":
+        return {
+            "response": f"""
+                <h3>❌ System Alert: Command Unrecognized</h3>
+                <p>The input "<em>{user_msg}</em>" does not match any current service catalogs or database entries.</p>
+                <p>Please select a troubleshooting protocol:</p>
+                <div class="chat-card">
+                    <span class="chat-card-title"><i class="fa-solid fa-screwdriver-wrench"></i> Troubleshooting Actions</span>
+                    <span class="chat-card-content">
+                        • Type <code>lookup TCK-XXXXXX</code> to search our SQLite ticketing system<br>
+                        • Select <strong>Raise Support Ticket</strong> to open a new support ticket<br>
+                        • Use simpler technical terms (e.g. <em>"tuition"</em> or <em>"exams"</em>)<br>
+                        • Click a quick reply below
+                    </span>
+                </div>
+            """,
+            "replies": ["Raise Support Ticket", "Campus Map"] + DEFAULT_REPLIES[2:]
+        }
+    else: # advisor
+        return {
+            "response": f"""
+                <h3>🔍 Unrecognized Academic Query</h3>
+                <p>We could not find matching guidelines for "<em>{user_msg}</em>" in our university administration database.</p>
+                <p>Please consider the following standard actions:</p>
+                <div class="chat-card">
+                    <span class="chat-card-title"><i class="fa-solid fa-circle-info"></i> Advisor Advice</span>
+                    <span class="chat-card-content">
+                        • Enquire using standard terms (e.g. <em>"fees"</em> or <em>"admission"</em>)<br>
+                        • Check the academic calendar dates by typing <em>"exams"</em><br>
+                        • Use the GPA Calculator in the sidebar to test grade options<br>
+                        • Choose a quick reply from below
+                    </span>
+                </div>
+            """,
+            "replies": DEFAULT_REPLIES
+        }
 
 def apply_personality_tone(text, personality):
     if personality == "guide":
@@ -502,7 +570,8 @@ def chat():
     # Step-by-step ticketing and specific overrides must run on rules engine
     state = session_states.get(session_id, {"step": None, "email": "", "issue": ""})
     is_stateful = state["step"] is not None
-    is_direct_override = message.lower().strip() in ["apply link", "apply", "scholarship application", "scholarships info", "cancel support request", "go back", "back"] or "library" in message.lower() or "gym" in message.lower() or "diner" in message.lower() or "dorm" in message.lower() or "lookup" in message.lower() or "tck-" in message.lower()
+    clean_lower = message.lower().strip()
+    is_direct_override = clean_lower in ["system_switch_mode", "greet_mode", "apply link", "apply", "scholarship application", "scholarships info", "cancel support request", "go back", "back"] or "library" in clean_lower or "gym" in clean_lower or "diner" in clean_lower or "dorm" in clean_lower or "lookup" in clean_lower or "tck-" in clean_lower
 
     if has_gemini and not is_stateful and not is_direct_override:
         # Query Gemini API

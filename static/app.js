@@ -366,7 +366,34 @@ document.addEventListener("DOMContentLoaded", () => {
     const personalitySelect = document.getElementById("personality-select");
     personalitySelect.addEventListener("change", () => {
         const modeText = personalitySelect.options[personalitySelect.selectedIndex].text;
+        const personalityVal = personalitySelect.value;
         appendMessage("bot", `<p>🤖 <em>System: Personality has switched to <strong>${modeText}</strong> mode.</em></p>`);
+        
+        showTypingIndicator();
+        fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: "system_switch_mode",
+                session_id: sessionId,
+                personality: personalityVal
+            })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("HTTP Status " + res.status);
+            return res.json();
+        })
+        .then(data => {
+            removeTypingIndicator();
+            appendMessage("bot", data.response);
+            renderQuickReplies(data.replies);
+        })
+        .catch(err => {
+            console.error("Flask Server connection error on mode switch:", err);
+            removeTypingIndicator();
+        });
     });
 
     // Accordion UI Logic
